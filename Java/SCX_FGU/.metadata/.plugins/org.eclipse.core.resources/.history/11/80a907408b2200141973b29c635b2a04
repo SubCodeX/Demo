@@ -1,0 +1,56 @@
+package scx.fgu.level;
+
+import scx.fgu.graphics.Screen;
+import scx.fgu.level.tile.Tile;
+
+public class Level {
+	
+	protected int width, height;
+	protected int[] tiles;
+	
+	public Level(int width, int height) {
+		this.width = width;
+		this.height = height;
+		tiles = new int[width * height];
+		generateLevel();
+	}
+	
+	public Level(String path) {
+		loadLevel(path);
+	}
+	
+	protected void generateLevel() {
+		
+	}
+	
+	private void loadLevel(String path) {
+	}
+	
+	public void update() {
+	}
+	
+	private void time() {
+	}
+	
+	public void render(int xScroll, int yScroll, Screen screen) {
+		screen.setOffset(xScroll, yScroll);
+		int xUpperLeft = xScroll >> 4;
+		int yUpperLeft = yScroll >> 4;
+		int xLowerRight = (xScroll + screen.width) >> 4;
+		int yLowerRight = (yScroll + screen.height) >> 4;
+		
+		for (int y = yUpperLeft; y < yLowerRight; y += 1) {
+			for (int x = xUpperLeft; x < xLowerRight; x += 1) {
+				getTile(x, y).render(x, y, screen);
+			}
+		}
+	}
+	
+	public Tile getTile(int x, int y) {
+		if (x < 0 || x >= width || y < 0 || y >= height) return Tile.nill;
+		if (tiles[x + y * width] == 0) return Tile.grass;
+		
+		return Tile.nill;
+	}
+
+}

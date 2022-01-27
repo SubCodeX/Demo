@@ -1,0 +1,29 @@
+#version 330 core
+
+layout (location = 0) out vec4 renderColor;
+
+uniform vec2 mousePosition;
+
+in DATA
+{
+	vec4 position;
+	vec2 texCoord;
+	float texID;
+	vec4 color;
+} fsIn;
+
+uniform sampler2D textures[32];
+
+void main()
+{
+	float intensity = distance(fsIn.position.xy, mousePosition) * 20;
+	
+	vec4 texColor = fsIn.color;
+	if (fsIn.texID > 0.0)
+	{
+		int tID = int(fsIn.texID - 0.5);
+		texColor = texture(textures[tID], fsIn.texCoord);
+	}
+
+	renderColor = texColor * (fsIn.color / intensity);
+}
