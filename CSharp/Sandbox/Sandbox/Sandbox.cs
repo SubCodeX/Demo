@@ -4,11 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 using DotnetNoise;
 
 using Sandbox.Input;
 using Sandbox.Graphics;
 using Sandbox.Fluid;
+
+using Sandbox.Ground;
+using Sandbox.Scenes;
 
 
 
@@ -16,42 +20,69 @@ namespace Sandbox
 {
     public class Sandbox
     {
-        Keyboard m_Keyboard;
-        Window m_Window;
+        Keyboard Keyboard;
+        Mouse Mouse;
+        Window Window;       
+
+        Scene Scene;
         
         public void Run()
         {
-            // Prepare Window and Render Context
-            m_Window = new Window(800,600, SFML.Window.Styles.Close, "Sandbox", 120);
+            Window = new Window(1024, 1024, SFML.Window.Styles.Close, "Sandbox", 100);
 
-            // Prepare Input Handlers
-            m_Keyboard = new Keyboard(m_Window.RenderWindow);
+            Scene = new Scene(1024, 1024, 512, 512);
 
-            //Subscribe to Events
-            m_Window.Subscribe(ref m_Keyboard);
+            ParticleSystem pSys = new ParticleSystem("PSYS01", 0, 0, 1024, 1024);            
+            pSys.AddForce(new GlobalForce(0.0f, 0.99f, 0.05f));
+            //pSys.AddForce(new GlobalForce(0.1f, 0.0f, 0.01f));
+            pSys.AddConfinement(new OuterBounds(0, 0, 1000, 1000, 0.95f));
+            pSys.AddConfinement(new InnerBounds(100, 100, 450, 450, 0.95f));
+            pSys.AddConfinement(new InnerBounds(550, 550, 900, 900, 0.95f));
+            pSys.AddConfinement(new InnerBounds(100, 550, 450, 900, 0.95f));
+            pSys.AddConfinement(new InnerBounds(550, 100, 900, 450, 0.95f));
+            pSys.AddConfinement(new InnerBounds(100, 800, 900, 900, 0.95f));
 
-            ParticleSystem particleSystem = new ParticleSystem(1000, 0, 0, 800, 600);
+            Scene.Add(pSys);
 
-            while (m_Window.RenderWindow.IsOpen)
+            Keyboard = new Keyboard(Window.RenderWindow);
+            Mouse = new Mouse(Window.RenderWindow);
+
+            Window.Subscribe(ref Keyboard, ref Mouse);
+                       
+            int counter = 0;
+
+            Random random = new Random();
+                        
+            while (Window.RenderWindow.IsOpen)
             {
-                m_Window.Events();
-                //particleSystem.GlobalForce(new System.Numerics.Vector2(0.0f, 0.1f));
-                particleSystem.GlobalAttraction(100.0f, 10.0f);
-                particleSystem.NeighbourRepulsionSlow(0.001f, 15.0f, 5.0f);
-
-                particleSystem.Update(m_Window.Time, 10);
+                Window.Events();
                 
+                Scene.Update(1.0f);
 
-                particleSystem.ConfineTo(0, 0, 800, 600);
+                
+                if (Mouse.GetButton(SFML.Window.Mouse.Button.Left))
+                {
+                    for (int i = 0; i < 10; i++)
+                        (Scene.GetEntityByName("PSYS01") as ParticleSystem).AddParticle(Mouse.Position.X, Mouse.Position.Y, 1.0f, random.Next(360), 1.0f);                    
+                }
+                        
+                
+                                
 
-                m_Window.Clear();
+                Window.Clear();
+                Window.Render(Scene.GetRenderables());
+                Window.Display();
 
-                m_Window.Render(particleSystem.GetPositions());
-            
-                m_Window.Display();
+                counter++;
+                if (counter > 100)
+                {
+                    Console.WriteLine("Particle Count : " + (Scene.GetEntityByName("PSYS01") as ParticleSystem).GetParticleCount);
+                    counter = 0;
+                }
+
             }
 
-            m_Window.Unsubscribe(ref m_Keyboard);
+            Window.Unsubscribe(ref Keyboard);
 
         }        
     }

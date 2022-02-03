@@ -9,64 +9,44 @@ using System.Numerics;
 
 namespace Sandbox.Fluid
 {
-    internal class Particle
+    public class Particle
     {
-        public Vector2 Position { get; private set; } = new Vector2(0.0f, 0.0f); 
+        public Vector2 Position { get; set; } = new Vector2(0.0f, 0.0f);
+        public bool PositionNotSet = true;
         public Vector2 Velocity { get; set; } = new Vector2(0.0f, 0.0f);
-        public Vector2 Acceleration { get; private set; } = new Vector2(0.0f, 0.0f);
+        public Vector2 Acceleration { get; set; } = new Vector2(0.0f, 0.0f);
         public float Mass { get; private set; } = 1.0f;
 
-        public Particle(Vector2 position, float mass)
+        public Particle(Vector2 position, float mass, Vector2 velocity)
         {
             Position = position;
             Mass = mass;
+            Velocity = velocity;
         }
 
         public void AddForce(Vector2 force)
         {
             Acceleration += force / Mass;
         }
-
-        public void ConfineTo(int left, int top, int right, int bottom)
-        {
-            float x = Position.X;
-            float y = Position.Y;
-
-            if (x < left)
-            {
-                x = left;
-            }
-
-            if (y < top)
-            {
-                y = top;
-            }
-
-            if (x > right)
-            {
-                x = right;
-            }
-
-            if (y > bottom)
-            {
-                y = bottom;
-            }
-
-            Position = new Vector2(x, y);
-        }
-
-        public void Update(float deltaTime, float speedLimit)
+        
+        public void Calculate(float speedLimit)
         {
             Velocity += Acceleration;
+            Acceleration = Vector2.Zero;
 
             if (Velocity.LengthSquared() > speedLimit * speedLimit)
             {
                 Velocity = Vector2.Normalize(Velocity) * speedLimit;
             }
+        }
 
-            Position += Velocity * deltaTime;
-
-            Acceleration = Vector2.Zero;
+        public void Update(float deltaTime, float speedLimit)
+        {
+            if (PositionNotSet)
+            {
+                Position += Velocity * deltaTime;
+            }
+            PositionNotSet = false;
         }                
     }
 }
